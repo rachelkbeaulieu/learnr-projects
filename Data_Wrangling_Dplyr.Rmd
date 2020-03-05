@@ -6,13 +6,10 @@ runtime: shiny_prerendered
 
 ```{r setup, include=FALSE}
 library(learnr)
-knitr::opts_chunk$set(echo = FALSE)
-```
-
-```{r message=FALSE, warning=FALSE, include=FALSE}
 library(nycflights13)
 library(tidyverse)
 coffee <- read_csv("coffee.csv")
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 
@@ -269,20 +266,10 @@ In order to compute and append one or more new columns, while getting rid of all
 transmute(flights, delay = arr_time - sched_arr_time)
 ```
 
-```{r message=FALSE, warning=FALSE, include=FALSE}
-library(nycflights13)
-```
-
 
 ### Example 3
 
-To group data into rows with the same value of a variable, you use:
-
-```{r group-by1, exercise=TRUE, exercise.eval=TRUE}
-flights %>%
-  group_by(carrier)
-```
-You can also ungroup the rows by using `ungroup(flights)`.
+To group data into rows with the same value of a variable, you use the `group_by(dataset, variable)` function. You can also ungroup rows, if necessary, by using the function `ungroup(dataset)` 
 
 a. Grouping is useful for when you want to create a separate summary for each group:
 
