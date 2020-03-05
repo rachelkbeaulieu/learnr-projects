@@ -1,0 +1,352 @@
+---
+title: "Data Wrangling with `dplyr`"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(nycflights13)
+library(tidyverse)
+coffee <- read_csv("coffee.csv")
+```
+
+
+## Welcome
+
+This tutorial addresses some of the basics of data wrangling with the package `dplyr`. 
+
+In this tutorial, you will learn how to:
+  
+- Filter data
+- Select unique rows
+- Randomly select rows
+- Select variables on a variety of conditions
+- Group data
+- Use the pipeline
+- And more!
+  
+
+## Subset Observations: Filtering 
+
+### Example 1
+
+
+To filter data using `dplyr`, use the `filter()` command with the dataset and the conditions you are filtering on:
+
+```{r filter-weather-ex1, exercise=TRUE, exercise.eval=TRUE}
+filter(weather, wind_gust > 50)
+```
+This shows all of the flights that had a wind gust speed of over 50 miles per hour.
+
+### Example 2
+
+
+To filter on more than one condition, put an `&` between each condition:
+
+```{r filter-weather-ex2, exercise=TRUE, exercise.eval=TRUE}
+filter(weather, wind_gust > 35 & temp > 65)
+```
+This shows all of the flights that had wind gusts over 35 miles per hour *and* an average temperature of over 65 degress fahrenheit.
+
+### Example 3
+
+
+To filter on more than one category, we use the `%in%` operator:
+
+```{r filter-flights-ex1, exercise=TRUE, exercise.eval=TRUE}
+filter(flights, carrier %in% c("B6", "UA"))
+```
+
+### Exercise 1
+
+
+Your turn! Filter the `flights` data where `carrier` is `B6` (JetBlue) and `dep_delay` is above or equal to 300 minutes.
+
+```{r filter-flights-e1, exercise=TRUE}
+
+```
+
+```{r filter-flights-e1-solution}
+filter(flights, carrier=="B6" & dep_delay >= 300)
+```
+
+### Exercise 2
+
+What was the date of the flight with its origin at LGA, by UA carrier (United Airlines), and an air time of over 300 minutes?
+
+```{r filter-quiz-flights, exercise=TRUE}
+
+```
+
+```{r filter-quiz-flights-hint}
+filter(flights, carrier=="UA" & origin =="LGA", air_time > 300)
+```
+
+
+```{r filtering-quiz}
+quiz(
+  question("What was the date of the flight with origin LGA, by UA carrier, and an air time of over 300 minutes?",
+    answer("09/14/2013"),
+    answer("09/10/2013", correct = TRUE),
+    answer("10/09/2013"),
+    answer("12/09/2013")
+  )
+)
+```
+
+
+
+## Other Subset Observations
+
+### Example 1: Distinct Observations
+
+
+To see all of the potential answers for a dataset, use the `distinct` command:
+
+```{r distinct-coffee, exercise=TRUE, exercise.eval=TRUE}
+distinct(coffee)
+```
+Here you can see all of the distinct options from participants. In the actual dataset, there are over fifty-thousand entries but only ten distinct possibilities! 
+
+### Example 2: Select a specific number of rows
+
+a. To randomly select on a fraction of rows, use the `sample_frac()` command:
+
+```{r sample-frac-coffee, exercise=TRUE, exercise.eval=TRUE}
+sample_frac(coffee, size = 0.01, replace = TRUE)
+```
+This command resamples the coffee data, based on the set proportion. Using `replace = TRUE` allows for the same row to be used more than once.
+
+
+b. We can randomly select a set number of rows using the `sample_n()` command:
+
+```{r sample-n-coffee, exercise=TRUE, exercise.eval=TRUE}
+sample_n(coffee, 15, replace = TRUE)
+```
+
+
+c. To select rows by position, we use the `slice()` command:
+
+```{r slice-coffee, exercise=TRUE, exercise.eval=TRUE}
+slice(coffee, 45000:45010)
+```
+
+
+### Example 3: Select and order entries
+
+To select and order entries, use the `top_n()` command:
+
+```{r top-coffee, exercise=TRUE, exercise.eval=TRUE}
+top_n(flights, 3, air_time)
+```
+The top three longest air times are, in no particular order, 691, 686, and 695 minutes. Due to a tie of 686 minutes, there are four entries because the command will still show you the three top times, regardless of a tie.
+
+## Subset Variables: Selecting
+
+### Example 1
+
+a. To select the columns where the variable name contains a specific character string, the command goes as follows:
+
+```{r contains-str, exercise=TRUE, exercise.eval=TRUE}
+select(flights, contains("dep"))
+```
+This shows all of the columns where the variable names have `dep` in it, which includes: dep_time, sched_dep_time, and dep_delay, so that you can see all of the information about the departure and its potential delays.
+
+b. For selecting columns where the name ends with a character string:
+
+```{r ends-with, exercise=TRUE, exercise.eval=TRUE}
+select(flights, ends_with("time"))
+```
+Rather than showing all variable names that have `time` in it, we are only given the variables that *end* with `time`, which includes the columns for: dep_time, sched_dep_time, arr_time, sched_arr_time, and air_time, so that you can see all of the information about arrival, departure, and air time!
+
+**NOTE:** You can also select all of the columns where the variable name starts with a character string by using `select(dataset, starts_with("nameStart"))`
+
+
+c. To select all columns, we use `select(dataset, everything())`
+
+This can be useful to get a snapshot of the columns you're working with.
+
+d. For selecting columns where the name matches a regular expression, you use:
+
+```{r matches, exercise=TRUE, exercise.eval=TRUE}
+select(flights, matches(".t."))
+```
+
+```{r matches-quiz}
+quiz(
+  question("What does the `.` mean in the command above?",
+    answer("The `.` means that the column should not start nor end with `t`", correct=TRUE),
+    answer("The `.` means that the column should contain `.` surrounding the `t` in the variable name(s)"),
+    answer("The `.` means that there should be at least one `.` next to the `t`")
+  )
+)
+```
+
+e. To select columns between two specific variables, you use:
+
+```{r between-two, exercise=TRUE, exercise.eval=TRUE}
+select(flights, arr_time:arr_delay)
+```
+
+f. For selecting all columns expect that of a specific variable, you use:
+
+```{r all-but-1, exercise=TRUE, exercise.eval=TRUE}
+select(flights, -arr_time)
+```
+
+**NOTE:** To select multiple columns to exclude, you can use `select(dataset, -c(column1, column4, column6))`
+
+
+### Quiz
+
+```{r select-quiz}
+quiz(
+  question("What command would you use if you wanted to select all of the dataset?",
+    answer("select(dataset, contains(everything))"),
+    answer("select(dataset, matches(everything))"),
+    answer("select(dataset, everything())", correct=TRUE),
+    answer("select(dataset, everything(all))")
+  ),
+  question("What command should you use if you know only one word in a variable name but don't know where it is in the name?",
+    answer("select(dataset, contains('word'))", correct=TRUE),
+    answer("select(dataset, matches('.word.'))"),
+    answer("select(dataset, starts_with('word'))"),
+    answer("select(dataset, ends_with('word'))")
+  ),
+  question("What command should you use if you want to get rid of three columns?",
+    answer("select(dataset, -column1, -column2, -column3)"),
+    answer("select(dataset, -column1, column2, column3)"),       
+    answer("select(dataset, -c(column1, column2, column3))", correct=TRUE),
+    answer("select(dataset, c(-column1, -column2, -column3))"))
+)
+```
+
+## Using the Pipeline
+
+### How & When to use the Pipeline
+
+We use the pipeline, `%>%`, to get information in an organized manner, where we can get a filter, summarize, and select all in one chunk of code, without going through the hassle of performing each function separately. 
+
+The pipeline turns this (code explained in next section):
+
+```{r pipeline-1, exercise=TRUE, exercise.eval=TRUE}
+select(mutate(flights, delay = arr_time - sched_arr_time), delay)
+```
+
+Into this: 
+
+```{r mutate-1, exercise=TRUE, exercise.eval=TRUE}
+flights %>%
+  mutate(delay= arr_time-sched_arr_time) %>%
+  select(delay)
+```
+While it may not feel like a significant difference when you're only using two functions, the pipeline really makes a difference when you're working with several functions, which we will see later on. 
+
+## Making and Grouping Data
+
+### Example 1
+
+In order to compute and append one or more columns, we use the mutate command as follows:
+
+```{r pipe-mutate, exercise=TRUE, exercise.eval=TRUE}
+flights %>%
+  mutate(delay= arr_time - sched_arr_time) %>%
+  select(delay, arr_time, sched_arr_time)
+```
+This shows the arrival time delay, which would be more relevant if it wasn't already a column but now you know how to find this number!
+
+
+### Example 2
+
+In order to compute and append one or more new columns, while getting rid of all original columns:
+
+```{r transmute, exercise=TRUE, exercise.eval=TRUE}
+transmute(flights, delay = arr_time - sched_arr_time)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(nycflights13)
+```
+
+
+### Example 3
+
+To group data into rows with the same value of a variable, you use:
+
+```{r group-by1, exercise=TRUE, exercise.eval=TRUE}
+flights %>%
+  group_by(carrier)
+```
+You can also ungroup the rows by using `ungroup(flights)`.
+
+a. Grouping is useful for when you want to create a separate summary for each group:
+
+```{r group-summary, exercise=TRUE, exercise.eval=TRUE}
+flights %>%
+  group_by(carrier) %>% 
+  summarise(mean(dep_delay, na.rm=TRUE))
+```
+This shows the average departure delay based on the flight carrier. The `na.rm=TRUE` removes all of the NAs from the calculation.
+
+b. Grouping can also be used for mutating columns based on groups:
+
+```{r group-mutate, exercise=TRUE, exercise.eval=TRUE}
+flights %>%
+  group_by(carrier, origin) %>%
+  mutate(avg_delay = mean(dep_delay, na.rm=TRUE)) %>%
+  select(carrier, origin, avg_delay) %>% 
+  distinct()
+```
+This shows the average departure delay based on both the flight carrier and the airport origin.
+
+### Exercise 1
+
+Using the pipeline, find the mean departure delay (`dep_delay`) and mean arrival delay (`arr_delay`) and group by month to see if the time of year influences the delays. Be sure to only show each month once!
+
+```{r pipe-filter-ex1, exercise=TRUE}
+
+```
+
+```{r pipe-filter-ex1-hint}
+#remember to use `na.rm=TRUE` in the mean calculations
+
+#use the `distinct()` command to output only one row for each month
+```
+
+```{r pipe-filter-ex1-solution}
+flights %>%
+  group_by(month) %>%
+  mutate(mean_delay = mean(dep_delay, na.rm=TRUE), mean_arr = mean(arr_delay, na.rm=TRUE)) %>%
+  select(month, mean_delay, mean_arr) %>% 
+  distinct()
+```
+
+### Exercise 2
+
+Using the pipeline, find the longest five delays by carrier. 
+
+```{r top-n-ex, exercise=TRUE}
+
+```
+
+```{r top-n-ex-hint}
+#use summarize(max_delay = max(dep_delay, na.rm=TRUE)) to calculate the max delays
+```
+
+```{r top-n-ex-solution}
+flights %>%
+  group_by(carrier) %>%
+  summarize(max_delay = max(dep_delay, na.rm=TRUE)) %>% 
+  top_n(5)
+```
+
+
+
+
+
+
