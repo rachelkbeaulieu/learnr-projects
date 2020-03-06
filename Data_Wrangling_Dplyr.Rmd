@@ -55,8 +55,8 @@ This shows all of the flights that had wind gusts over 35 miles per hour *and* a
 
 To filter on more than one category, we use the `%in%` operator:
 
-```{r filter-flights-ex1, exercise=TRUE, exercise.eval=TRUE}
-filter(flights, carrier %in% c("B6", "UA"))
+```{r filter-weather-ex, exercise=TRUE, exercise.eval=TRUE}
+filter(weather, origin %in% c("JFK", "LGA"))
 ```
 
 ### Exercise 1
@@ -192,8 +192,8 @@ select(flights, arr_time:arr_delay)
 
 f. For selecting all columns expect that of a specific variable, you use:
 
-```{r all-but-1, exercise=TRUE, exercise.eval=TRUE}
-select(flights, -arr_time)
+```{r all-1, exercise=TRUE, exercise.eval=TRUE}
+select(weather, -origin)
 ```
 
 **NOTE:** To select multiple columns to exclude, you can use `select(dataset, -c(column1, column4, column6))`
